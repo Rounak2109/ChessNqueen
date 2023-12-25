@@ -14,30 +14,36 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 
 
 def bishop_moves(position):
-    # {"postions": {"Queen": "E7", "Bishop": "D5", "Rook":"G5", "Knight": "C3""}}
+    # {"postions": {"Queen": "E7", "Bishop": "B7", "Rook":"G5", "Knight": "C3""}}
     # valid_moves = ["A8",B7,"C6","D5","E4","F3","G2","H1",,,,,"E6","F7","G8","C4","B3","A2"]
     # {"positions": {"Queen": "A5", "Bishop": "G8", "Rook":"H5", "Knight": "G4"}}
     bishop_pos_list,switch = [],0
-    chess_index = ["1","2","3","4","5","6","7","8"]
+    
     chess_width = ["A","B","C","D","E","F","G","H"]
+    chess_index = ["1","2","3","4","5","6","7","8"]
     first_item,second_item = position[0],position[1]
+    print(f"{switch}")
     first_index, second_index = chess_width.index(first_item),chess_index.index(second_item)
     while first_item in chess_width and second_item in chess_index:
-        
+        print("Inside While Loop")
         if switch==0:
             if first_index+1==len(chess_width) or second_index+1==len(chess_index):
                 first_item,second_item = position[0],position[1]
                 first_index, second_index = chess_width.index(first_item),chess_index.index(second_item)
                 switch=1
             else:
-                first_item,second_item = chess_width[first_index+1],chess_index[second_index+1]
+                first_index+=1
+                second_index+=1
+                first_item,second_item = chess_width[first_index],chess_index[second_index]
                 bishop_pos_list.append(first_item+second_item)
         elif switch==1:
             
             if first_index-1==-1 or second_index-1==-1:
                 break
             else:
-                first_item,second_item = chess_width[first_index-1],chess_index[second_index-1]
+                first_index-=1
+                second_index-=1
+                first_item,second_item = chess_width[first_index],chess_index[second_index]
                 bishop_pos_list.append(first_item+second_item)
 
     first_item,second_item = position[0],position[1]
@@ -51,14 +57,18 @@ def bishop_moves(position):
                 first_index, second_index = chess_width.index(first_item),chess_index.index(second_item)
                 switch=1
             else:
-                first_item,second_item = chess_width[first_index+1],chess_index[second_index-1]
+                first_index+=1
+                second_index-=1
+                first_item,second_item = chess_width[first_index],chess_index[second_index]
                 bishop_pos_list.append(first_item+second_item)
         elif switch==1:
             
             if first_index-1==-1 or second_index+1==len(chess_index):
                 break
             else:
-                first_item,second_item = chess_width[first_index-1],chess_index[second_index+1]
+                first_index-=1
+                second_index+=1
+                first_item,second_item = chess_width[first_index],chess_index[second_index]
                 bishop_pos_list.append(first_item+second_item)
 
     print(bishop_pos_list)
@@ -78,6 +88,13 @@ def rook_moves(position):
     return rook_pos_list
 
 
+# Need to remove the duplicate element
+def queen_moves(position):
+
+    valid_rook_moves = rook_moves(position)
+    valid_bishop_moves = bishop_moves(position)
+    return valid_bishop_moves+valid_rook_moves
+
 @csrf_exempt
 def output(request,slug):
     """
@@ -89,7 +106,7 @@ def output(request,slug):
         if slug == "queen":
             # print(dir(request))
             # print(request.headers)
-            print(request.body)
+            valid_moves = {}
             json_data = json.loads(request.body)
             print("Request.BODY")
             # print(request.POST.get("positions")["Queen"])
@@ -97,7 +114,8 @@ def output(request,slug):
             print(json_data.get("positions").get("Queen"))
             valid_queen_moves = queen_moves(json_data.get("positions").get("Queen"))
             # {"Queen": "H1", "Bishop": "B7", "Rook":"H8", "Knight": "F2"}
-            return JsonResponse(json_data)
+            valid_moves["valid_moves"] = valid_queen_moves
+            return JsonResponse(valid_moves)
 
         elif slug == "knight":
 
@@ -115,19 +133,14 @@ def output(request,slug):
         elif slug == "bishop":
             valid_moves = {}
             json_data = json.loads(request.body)
-            valid_rook_moves = bishop_moves(json_data.get("positions").get("Bishop"))
+            valid_bishop_moves = bishop_moves(json_data.get("positions").get("Bishop"))
 
-            valid_moves["valid_moves"] = valid_rook_moves
+            valid_moves["valid_moves"] = valid_bishop_moves
             return JsonResponse(valid_moves)
 
 
 
-    def queen_moves(position):
-
-        valid_rook_moves = rook_moves(position)
-        valid_bishop_moves = bishop_moves(position)
-        return set(valid_bishop_moves+valid_rook_moves)
-    
+        
     
 
     # def queen_decorator(func):
