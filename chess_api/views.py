@@ -81,19 +81,74 @@ def rook_moves(position):
     chess_width = ["A","B","C","D","E","F","G","H"]
     for item1 in chess_index:
         rook_pos_list.append(position[0]+item1)
-        
+    rook_pos_list.remove(position)    
     for item2 in chess_width:
         rook_pos_list.append(item2+position[1])
-    print(rook_pos_list)
+
+    rook_pos_list.remove(position)
+    print(f"rook_pos_list, {rook_pos_list}")
     return rook_pos_list
 
 
-# Need to remove the duplicate element
 def queen_moves(position):
 
+    print(f"position is {position}, type is {type(position)}")
     valid_rook_moves = rook_moves(position)
     valid_bishop_moves = bishop_moves(position)
-    return valid_bishop_moves+valid_rook_moves
+    unique_element = set(valid_bishop_moves+valid_rook_moves)
+    print(f"unique_element is {unique_element}")
+    # unique_element.remove(position)
+    return list(unique_element)
+
+def knight_moves(position):
+    # {"positions": {"Queen": "A5", "Bishop": "G8", "Rook":"H5", "Knight": "E5"}}
+    # {"D7","D3","C6","C4","G6","G4","F7","F3"}
+    # {Knight:"H8"}
+    # {"G6","F7"}
+    chess_index = ["1","2","3","4","5","6","7","8"]
+    chess_width = ["A","B","C","D","E","F","G","H"]
+    knight_moves,switch = [],0
+    first_position,second_position = position[0],position[1]
+    first_pos_index,second_pos_index = chess_width.index(first_position),chess_index.index(second_position)
+    
+    if first_pos_index-1 in range(0,8) and second_pos_index-2 in range(0,8):
+        
+        pos_1 = chess_width[first_pos_index-1]+chess_index[second_pos_index-2]
+        knight_moves.append(pos_1)
+    
+    if first_pos_index-1 in range(0,8) and second_pos_index+2 in range(0,8): 
+        
+        pos_2 = chess_width[first_pos_index-1]+chess_index[second_pos_index+2]
+        knight_moves.append(pos_2)
+    if first_pos_index-2 in range(0,8) and second_pos_index-1 in range(0,8):
+        
+        pos_3 = chess_width[first_pos_index-2]+chess_index[second_pos_index-1]
+        knight_moves.append(pos_3)
+    if first_pos_index-2 in range(0,8) and second_pos_index+1 in range(0,8):
+        
+        pos_4 = chess_width[first_pos_index-2]+chess_index[second_pos_index+1]
+        knight_moves.append(pos_4)
+    if first_pos_index+1 in range(0,8) and second_pos_index-2 in range(0,8):
+        
+        pos_5 = chess_width[first_pos_index+1]+chess_index[second_pos_index-2]
+        knight_moves.append(pos_5)
+    if first_pos_index+1 in range(0,8) and second_pos_index+2 in range(0,8):
+        
+        pos_6 = chess_width[first_pos_index+1]+chess_index[second_pos_index+2]
+        knight_moves.append(pos_6)
+    if first_pos_index+2 in range(0,8) and second_pos_index-1 in range(0,8):
+        
+        pos_7 = chess_width[first_pos_index+2]+chess_index[second_pos_index-1]
+        knight_moves.append(pos_7)
+    if first_pos_index+2 in range(0,8) and second_pos_index+1 in range(0,8):
+
+        pos_8 = chess_width[first_pos_index+2]+chess_index[second_pos_index+1]
+        knight_moves.append(pos_8)
+    
+    
+    return knight_moves
+
+
 
 @csrf_exempt
 def output(request,slug):
@@ -104,38 +159,66 @@ def output(request,slug):
     # {"positions": {"Queen": "A5", "Bishop": "G8", "Rook":"H5", "Knight": "G4"}}
     if request.method == 'POST':
         if slug == "queen":
-            # print(dir(request))
-            # print(request.headers)
+            
             valid_moves = {}
             json_data = json.loads(request.body)
-            print("Request.BODY")
-            # print(request.POST.get("positions")["Queen"])
-            # print(request.body.decode()[1:10])
-            print(json_data.get("positions").get("Queen"))
-            valid_queen_moves = queen_moves(json_data.get("positions").get("Queen"))
+            
+            knight_moves_pos = knight_moves(json_data.get("positions").get("Knight"))
+            rook_moves_pos = rook_moves(json_data.get("positions").get("Rook"))
+            bishop_moves_pos = bishop_moves(json_data.get("positions").get("Bishop"))
+            queen_moves_pos = queen_moves(json_data.get("positions").get("Queen"))
             # {"Queen": "H1", "Bishop": "B7", "Rook":"H8", "Knight": "F2"}
-            valid_moves["valid_moves"] = valid_queen_moves
+            valid_queen_moves = set(queen_moves_pos)-set(knight_moves_pos+rook_moves_pos+bishop_moves_pos)
+            valid_moves["valid_moves"] = list(valid_queen_moves)
             return JsonResponse(valid_moves)
 
         elif slug == "knight":
 
-            return JsonResponse(request.data["positions"]["Knight"])
+            valid_moves = {}
+            json_data = json.loads(request.body)
+            knight_moves_pos = knight_moves(json_data.get("positions").get("Knight"))
+            rook_moves_pos = rook_moves(json_data.get("positions").get("Rook"))
+            bishop_moves_pos = bishop_moves(json_data.get("positions").get("Bishop"))
+            queen_moves_pos = queen_moves(json_data.get("positions").get("Queen"))
+            
+            valid_knight_moves = set(knight_moves_pos)-set(queen_moves_pos+rook_moves_pos+bishop_moves_pos)
+            
+            # valid_knight_moves = knight_moves(json_data.get("positions").get("Knight"))
+
+            valid_moves["valid_moves"] = list(valid_knight_moves)
+            return JsonResponse(valid_moves)
 
         elif slug == "rook":
 
             valid_moves = {}
             json_data = json.loads(request.body)
-            valid_rook_moves = rook_moves(json_data.get("positions").get("Rook"))
 
-            valid_moves["valid_moves"] = valid_rook_moves
+            knight_moves_pos = knight_moves(json_data.get("positions").get("Knight"))
+            rook_moves_pos = rook_moves(json_data.get("positions").get("Rook"))
+            bishop_moves_pos = bishop_moves(json_data.get("positions").get("Bishop"))
+            queen_moves_pos = queen_moves(json_data.get("positions").get("Queen"))
+
+            # valid_rook_moves = rook_moves(json_data.get("positions").get("Rook"))
+
+            valid_rook_moves = set(rook_moves_pos)-set(queen_moves_pos+knight_moves_pos+bishop_moves_pos)
+
+            valid_moves["valid_moves"] = list(valid_rook_moves)
             return JsonResponse(valid_moves)
 
         elif slug == "bishop":
             valid_moves = {}
             json_data = json.loads(request.body)
-            valid_bishop_moves = bishop_moves(json_data.get("positions").get("Bishop"))
 
-            valid_moves["valid_moves"] = valid_bishop_moves
+            knight_moves_pos = knight_moves(json_data.get("positions").get("Knight"))
+            rook_moves_pos = rook_moves(json_data.get("positions").get("Rook"))
+            bishop_moves_pos = bishop_moves(json_data.get("positions").get("Bishop"))
+            queen_moves_pos = queen_moves(json_data.get("positions").get("Queen"))
+
+            valid_bishop_moves = set(bishop_moves_pos)-set(queen_moves_pos+knight_moves_pos+rook_moves_pos)
+            
+            valid_moves["valid_moves"] = list(valid_bishop_moves)
+            # valid_bishop_moves = bishop_moves(json_data.get("positions").get("Bishop"))
+
             return JsonResponse(valid_moves)
 
 
