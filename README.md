@@ -2,7 +2,7 @@ Make sure you have Docker installed.
 
 To build this the first time you simply have to run:
 
-$ git clone git@github.com:rounak2109/ChessNqueen.git
+$ git clone https://github.com/Rounak2109/ChessNqueen
 
 $ cd ChessNqueen
 
