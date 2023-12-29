@@ -3,7 +3,9 @@ Make sure you have Docker installed.
 To build this the first time you simply have to run:
 
 $ git clone git@github.com:rounak2109/ChessNqueen.git
+
 $ cd ChessNqueen
+
 $ docker-compose up --build
 
 
