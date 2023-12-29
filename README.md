@@ -27,8 +27,11 @@ in this FORMAT to get the valid positions of knight
 Available endpoints 
 
 0.0.0.0:8000/chess/queen
+
 0.0.0.0:8000/chess/knight
+
 0.0.0.0:8000/chess/rook
+
 0.0.0.0:8000/chess/bishop
 
 
